@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/bottom_navigation">
+
+    <fragment
+        android:id="@+id/bottom_navigation"
+        android:name="com.example.nasa.ui.BottomNavFragment"
+        tools:layout="@layout/fragment_bottom_nav">
+
+        <action
+            android:id="@+id/to_description"
+            app:destination="@id/date" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/date"
+        android:name="com.example.nasa.ui.description.DescriptionFragment"
+        tools:layout="@layout/fragment_description">
+
+        <argument
+            android:name="item_id"
+            app:argType="string" />
+
+    </fragment>
+
+</navigation>
