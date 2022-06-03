@@ -11,7 +11,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 internal interface NasaImageDao {
 
-
     @Query(
         """SELECT * FROM NasaImageEntity 
                 WHERE (:search) = search 

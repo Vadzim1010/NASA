@@ -22,7 +22,7 @@ internal class PagingSourceImpl(
     )
 
 
-    private var currentCacheList = listOf<NasaImage>()
+    private var cacheList = listOf<NasaImage>()
     private var currentPage = 1
     private var isLoading = false
     private var isLastPage = false
@@ -56,14 +56,19 @@ internal class PagingSourceImpl(
 
     override fun getNasaImagePage(): Flow<Resource<List<NasaImage>>> = loadStateFlow
         .filter { it != LoadState.Stop }
-        .flatMapLatest { loadState ->
+        .onEach {
+            isLoading = true
+            log("isLoading: $isLoading")
+        }
+        .onEach { loadState ->
             if (loadState is LoadState.Refresh) {
-                currentCacheList = emptyList()
+                cacheList = emptyList()
                 currentPage = 1
             }
 
             log("${loadState.searchQuery} ${loadState.yearStart} ${loadState.yearEnd}")
-
+        }
+        .flatMapLatest { loadState ->
             getImagePageUseCase(
                 page = currentPage,
                 query = loadState.searchQuery,
@@ -72,17 +77,13 @@ internal class PagingSourceImpl(
             )
         }
         .onEach {
-            isLoading = true
-            log("isLoading: $isLoading")
-        }
-        .onEach {
             log("page $currentPage")
         }
         .onEach { resource ->
             when (resource) {
                 is Resource.Success -> {
-                    currentCacheList = emptyList()
-                    currentCacheList = resource.data
+                    cacheList = emptyList()
+                    cacheList = resource.data
 
                     isLastPage = false
                     if (resource.data.size < PAGE_SIZE * currentPage || currentPage == MAX_PAGE) {
@@ -96,10 +97,8 @@ internal class PagingSourceImpl(
                     log("load internet success")
                 }
                 is Resource.Error -> {
-                    currentCacheList = emptyList()
-                    currentCacheList = resource.data ?: emptyList()
-
-                    val cacheList = resource.data ?: emptyList()
+                    cacheList = emptyList()
+                    cacheList = resource.data ?: emptyList()
 
                     isLastPage = false
                     if (cacheList.size < PAGE_SIZE * currentPage || currentPage == MAX_PAGE) {
@@ -113,14 +112,14 @@ internal class PagingSourceImpl(
                     log("load internet success")
                 }
                 is Resource.Loading -> {
-                    currentCacheList = emptyList()
-                    currentCacheList = resource.data ?: emptyList()
+                    cacheList = emptyList()
+                    cacheList = resource.data ?: emptyList()
 
                     log("load cache")
                 }
             }
         }
         .onStart {
-            emit(Resource.Loading(currentCacheList))
+            emit(Resource.Loading(cacheList))
         }
 }
